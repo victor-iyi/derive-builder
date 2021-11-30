@@ -42,6 +42,43 @@ fn get_struct_fields(
   fields
 }
 
+/// Derive macro for the Builder Design Pattern.
+///
+/// # Examples
+///
+/// ```rust
+/// # use derive_builder::Builder;
+///
+/// # fn main() {
+/// #[derive(Builder)]
+/// pub struct Command {
+///   executable: String,
+///   // #[builder(each = "arg")]
+///   args: Vec<String>,
+///   // #[builder(each = "env")]
+///   env: Vec<String>,
+///   current_dir: Option<String>,
+/// }
+///
+/// let command = Command::builder()
+///     .executable("cargo".to_owned())
+///     .args(vec!["build".to_owned(), "--release".to_owned()])
+///     .env(vec![])
+///     .build()
+///     .unwrap();
+///
+/// // let command = Command::builder()
+/// //   .executable("cargo".to_owned())
+/// //   .arg("build".to_owned())
+/// //   .arg("--release".to_owned())
+/// //   .build()
+/// //   .unwrap();
+///
+/// assert_eq!(command.executable, "cargo");
+/// assert_eq!(command.args, vec!["build", "--release"]);
+/// assert!(command.current_dir.is_none());
+/// # }
+/// ```
 #[proc_macro_derive(Builder)]
 pub fn derive(input: TokenStream) -> TokenStream {
   let ast = parse_macro_input!(input as DeriveInput);
