@@ -1,3 +1,4 @@
+use quote::format_ident;
 use syn::{punctuated::Punctuated, token::Comma, DeriveInput};
 
 /// Get the inner option type `T` from `Option<T>`.
@@ -70,8 +71,7 @@ pub fn get_struct_and_builder_ident(
   let name = &ast.ident;
 
   // Construct - CommandBuilder identifier.
-  let bname = format!("{}Builder", name);
-  let bident = syn::Ident::new(&bname, name.span());
+  let bident = format_ident!("{}Builder", name);
 
   (name, bident)
 }
