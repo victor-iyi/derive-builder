@@ -2,43 +2,9 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
 
-/// Get the inner option type `T` from `Option<T>`.
-fn inner_option_t(ty: &syn::Type) -> Option<&syn::Type> {
-  if let syn::Type::Path(ref p) = ty {
-    if p.path.segments.len() != 1 || p.path.segments[0].ident != "Option" {
-      return None;
-    }
+mod utils;
 
-    if let syn::PathArguments::AngleBracketed(ref inner_ty) =
-      p.path.segments[0].arguments
-    {
-      if inner_ty.args.len() != 1 {
-        return None;
-      }
-
-      let inner_ty = inner_ty.args.first().unwrap();
-      if let syn::GenericArgument::Type(ref t) = inner_ty {
-        return Some(t);
-      }
-    }
-  }
-  None
-}
-
-/// Get struct fields from a parsed syntax tree (`syn::DeriveInput`).
-fn get_struct_fields(
-  ast: &DeriveInput,
-) -> &syn::punctuated::Punctuated<syn::Field, syn::token::Comma> {
-  if let syn::Data::Struct(syn::DataStruct {
-    fields: syn::Fields::Named(syn::FieldsNamed { ref named, .. }),
-    ..
-  }) = ast.data
-  {
-    named
-  } else {
-    unimplemented!()
-  }
-}
+use utils::*;
 
 /// Derive macro for the Builder Design Pattern.
 ///
@@ -83,12 +49,8 @@ pub fn derive(input: TokenStream) -> TokenStream {
   let ast = parse_macro_input!(input as DeriveInput);
   // println!("{:#?}", ast);
 
-  // Command - Identifier.
-  let name = &ast.ident;
-
-  // Construct - CommandBuilder identifier.
-  let bname = format!("{}Builder", name);
-  let bident = syn::Ident::new(&bname, name.span());
+  // Get Command & CommandBuilder.
+  let (name, bident) = get_struct_and_builder_ident(&ast);
 
   // `#bident` fileds.
   let fields = get_struct_fields(&ast);
