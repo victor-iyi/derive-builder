@@ -29,7 +29,7 @@ fn inner_option_t(ty: &syn::Type) -> Option<&syn::Type> {
 fn get_struct_fields(
   ast: &DeriveInput,
 ) -> &syn::punctuated::Punctuated<syn::Field, syn::token::Comma> {
-  let fields = if let syn::Data::Struct(syn::DataStruct {
+  if let syn::Data::Struct(syn::DataStruct {
     fields: syn::Fields::Named(syn::FieldsNamed { ref named, .. }),
     ..
   }) = ast.data
@@ -37,9 +37,7 @@ fn get_struct_fields(
     named
   } else {
     unimplemented!()
-  };
-
-  fields
+  }
 }
 
 /// Derive macro for the Builder Design Pattern.
@@ -75,7 +73,8 @@ fn get_struct_fields(
 /// //   .unwrap();
 ///
 /// assert_eq!(command.executable, "cargo");
-/// assert_eq!(command.args, vec!["build", "--release"]);
+/// assert_eq!(command.args, &["build", "--release"]);
+/// assert!(command.env.is_empty());
 /// assert!(command.current_dir.is_none());
 /// # }
 /// ```
@@ -99,7 +98,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
     let name = &f.ident;
     let ty = &f.ty;
 
-    if inner_option_t(&ty).is_some() {
+    if inner_option_t(ty).is_some() {
       quote! { #name: #ty }
     } else {
       quote! { #name: std::option::Option<#ty> }
@@ -111,7 +110,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
     let name = &f.ident;
     let ty = &f.ty;
 
-    if let Some(inner_ty) = inner_option_t(&ty) {
+    if let Some(inner_ty) = inner_option_t(ty) {
       quote! {
         pub fn #name(&mut self, #name: #inner_ty) -> &mut Self {
           self.#name = Some(#name);
