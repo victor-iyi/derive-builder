@@ -60,27 +60,41 @@ pub fn derive(input: TokenStream) -> TokenStream {
     let name = &f.ident;
     let ty = &f.ty;
 
-    if inner_option_t(ty).is_some() {
+    if inner_type_t("Option", ty).is_some() {
       quote! { #name: #ty }
     } else {
       quote! { #name: std::option::Option<#ty> }
     }
   });
 
-  // let extend_methods = fields.iter().map(|f: &syn::Field| -> proc_macro2::TokenStream {
-  //   let name = &f.ident;
-  //   if !f.attrs.is_empty() {
-  //     eprintln!("{:#?}", f.attrs);
-  //   }
-  //   quote! { #name: None }
-  // });
+  // Handle `#[builder(each = "...")]`.
+  let extend_methods =
+    fields.iter().filter_map(|f| {
+      match extract_attrs_value(f, "builder", "each") {
+        Some(arg) => {
+          let name = &f.ident;
+          let inner_ty = inner_type_t("Vec", &f.ty);
+          Some(quote! {
+            fn #arg(&mut self, #arg: #inner_ty) -> &mut Self {
+              if let Some(ref mut values) = self.#name {
+                values.push(#arg);
+              } else {
+                self.#name = Some(vec![#arg]);
+              }
+              self
+            }
+          })
+        }
+        None => None,
+      }
+    });
 
   // `#bident` builder struct setter methods.
   let setter_methods = fields.iter().map(|f| {
     let name = &f.ident;
     let ty = &f.ty;
 
-    if let Some(inner_ty) = inner_option_t(ty) {
+    if let Some(inner_ty) = inner_type_t("Option", ty) {
       quote! {
         pub fn #name(&mut self, #name: #inner_ty) -> &mut Self {
           self.#name = Some(#name);
@@ -101,7 +115,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
   let build_ret = fields.iter().map(|f| {
         let name = &f.ident;
 
-        if inner_option_t(&f.ty).is_some() {
+        if inner_type_t("Option", &f.ty).is_some() {
             quote! { #name: self.#name.clone() }
         } else {
             quote! { #name: self.#name.clone().ok_or(concat!(stringify!(#name), " is not set"))? }
@@ -147,10 +161,11 @@ pub fn derive(input: TokenStream) -> TokenStream {
     // impl `CommandBuilder`.
     impl #bident {
 
+      // Methods generated from `#[builder(each = "...")]`.
+      #(#extend_methods)*
+
       // List of setter methods.
       #(#setter_methods)*
-
-      // #(#extend_methods)*
 
       /// `build` method on the builder struct runs the arguments and returns
       /// an object of original struct wrapped with `#[derive(Builder)]`.
