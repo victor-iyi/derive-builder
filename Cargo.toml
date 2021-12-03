@@ -9,7 +9,6 @@ keywords = ["derive", "builder", "design-pattern", "proc-macro"]
 publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 derive-builder = { path = "derive-builder" }
 

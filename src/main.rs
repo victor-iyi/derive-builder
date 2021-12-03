@@ -3,6 +3,7 @@ use derive_builder::Builder;
 #[derive(Builder)]
 pub struct Command {
   executable: String,
+  #[builder(each = "arg")]
   args: Vec<String>,
   env: Vec<String>,
   current_dir: Option<String>,
@@ -26,4 +27,16 @@ fn main() {
 
   assert!(command.env.is_empty());
   assert!(command.current_dir.is_none());
+
+  println!("{:?}", command);
+}
+
+impl std::fmt::Debug for Command {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(
+      f,
+      "Command {{ executable: {:?}, args: {:?}, env: {:?}, current_dir: {:?} }}",
+      self.executable, self.args, self.env, self.current_dir
+    )
+  }
 }
