@@ -2,6 +2,11 @@
 name = "builder"
 version = "0.1.0"
 edition = "2021"
+license = "MIT or Apache-2.0"
+repository = "https://github.com/victor-iyi/derive-builder"
+homepage = "https://github.com/victor-iyi/derive-builder"
+keywords = ["derive", "builder", "design-pattern", "proc-macro"]
+publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

@@ -58,6 +58,7 @@ fn main() {
   assert!(command.current_dir.is_some());
 }
 ```
+
 ## License (Apache 2.0 or MIT)
 
 Licensed under either of [Apache License, Version 2.0] or [MIT license].
